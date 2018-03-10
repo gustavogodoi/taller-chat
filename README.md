@@ -14,7 +14,13 @@
 
 The purpose of this test is to help us understand your technical proficiency and decision making process.
 
-Install this application, check it out, and once it's up-and-running, we will schedule a live code interview, during which you will be asked to develop a couple of new features or apply bug fixes for the app. Each task might involve one or more technologies. It's ok if you don't solve them all; we'll focus on your strengths.
+Install this application, check it out, and once it's up-and-running, we will schedule a live code interview, during which you will be asked to develop a couple of new features or apply bug fixes for the app. Each task might involve one or more technologies. It's ok if you don't solve tasks related to all technologies, but we would very much appreciate seeing how you learn and apply new things on the way.
+
+After the interview you'll be given a little more time to work on some more advanced tasks and send us the result.
+
+#### Clone this repository
+
+You must git clone this project and re-publish it on your own GitHub account. **Do not fork this repository** because it would be easy for other users to copy your solutions. Then, each task you work during the interview or later shall be developed in it's own branch. Once you finish a task, you must create a pull-request against the master branch on your repository, so that we can review the solution.
 
 ## What will you need
 
