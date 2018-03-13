@@ -109,14 +109,12 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                   <LoadingComponent />
                 ) : (
                   <MessagesContainer channel={ channels.find(({ name }) => name === channel) }>
-                    { ({ loading, refetch, messages }) => (
+                    { ({ loading, messages }) => (
                       <Box full='vertical'>
                         <StyledRoomHeader pad={ { vertical: 'small', horizontal: 'medium' } } justify='between'>
                           <Title>
                             { '#' + channel }
                           </Title>
-
-                          <Button icon={ <RefreshIcon /> } onClick={ () => refetch() } />
                         </StyledRoomHeader>
 
                         <Box pad='medium' flex='grow'>
