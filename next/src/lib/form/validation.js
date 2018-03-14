@@ -9,7 +9,7 @@ const isEmpty = value => typeof value === 'undefined' ||
 
 const isNotEmpty = R.complement(isEmpty)
 const isNotEmail = value => !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value)
-const isNotSpecialCharacter = value => !/^[a-z0-9._]*$/.test(value)
+const doesNotContainSpecialCharacter = value => !/^[a-z0-9._]*$/.test(value)
 
 // const isNotNumeric = value => !/^(\d+(\.\d+)?)$/.test(value)
 // const isNotInteger = value => Number(value) !== Math.floor(value)
@@ -23,7 +23,8 @@ export const nil = () => undefined
 export const required = value => isEmpty(value) && 'Required'
 // export const url = value => every([isNotEmpty, isNotURL])(value) && 'Invalid URL'
 export const email = value => every([isNotEmpty, isNotEmail])(value) && 'Must be a valid e-mail'
-export const notSpecialCharacter = value => every([isNotEmpty, isNotSpecialCharacter])(value) && 'Should not contain any special characters or capital letters'
+export const noSpecialCharacter = value => every(
+  [isNotEmpty, doesNotContainSpecialCharacter])(value) && 'Should not contain any special characters or capital letters'
 // export const number = value => every([isNotEmpty, isNotNumeric])(value) && 'Digite apenas números'
 // export const integer = value => number(value) || isNotInteger(value) && 'Digite apenas números inteiros'
 // export const checked = value => !value && 'Este campo deve estar marcado'
