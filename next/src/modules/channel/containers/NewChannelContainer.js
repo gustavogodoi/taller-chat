@@ -1,5 +1,5 @@
 import React from 'react'
-import { func } from 'prop-types'
+import { func, array } from 'prop-types'
 import gql from 'graphql-tag'
 import { Mutation } from 'react-apollo'
 import { noSpecialCharacter } from 'app/lib/form/validation'
@@ -22,7 +22,7 @@ const mutation = gql`
 
 // @TODO: implement optimistic query on channels?
 
-const NewMessageContainer = ({ channels, children }) => (
+const NewChannelContainer = ({ channels, children }) => (
   <Mutation mutation={ mutation } refetchQueries={ ['Channels'] }>
     { mutate => (
       children(name => {
@@ -45,9 +45,9 @@ const NewMessageContainer = ({ channels, children }) => (
   </Mutation>
 )
 
-NewMessageContainer.propTypes = {
+NewChannelContainer.propTypes = {
   children: func,
-  channels: Array
+  channels: array
 }
 
-export default NewMessageContainer
+export default NewChannelContainer
