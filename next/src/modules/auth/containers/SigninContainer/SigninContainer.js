@@ -14,7 +14,7 @@ export const labels = {
 }
 
 const validations = {
-  name: combine([required]),
+  name: combine([required, noSpecialCharacter]),
   email: combine([required, email]),
   password: combine([required, minLength(6), noSpecialCharacter]),
   passwordConfirm: condition(
