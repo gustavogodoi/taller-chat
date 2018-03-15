@@ -12,7 +12,6 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\user\UserAuthInterface;
 use Drupal\user\UserInterface;
 use Drupal\graphql\Plugin\GraphQL\Mutations\MutationPluginBase;
-use Drupal\graphql_core\GraphQL\EntityCrudOutputWrapper;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -20,7 +19,6 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-use Psr\Log\LoggerInterface;
 use Youshido\GraphQL\Execution\ResolveInfo;
 
 /**
@@ -34,7 +32,7 @@ use Youshido\GraphQL\Execution\ResolveInfo;
  *   nullable = false,
  *   schema_cache_tags = {"user_login"},
  *   arguments = {
- *     "username" = "String",
+ *     "name" = "String",
  *     "password" = "String"
  *   }
  * )
@@ -111,15 +109,14 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
     );
   }
 
+  /**
+   * Logs in a user.
+   *
+   * @return \Drupal\user\UserInterface
+   *   The newly logged user.
+   */
   public function resolve($value, array $args, ResolveInfo $info) {
-    $request = \Drupal::request();
-
-    // Handle email login.
-    if ($args['username'] !== 'admin' && $user = user_load_by_mail($args['username'])) {
-      $args['username'] = $user->getAccountName();
-    }
-
-    return $this->login($request, $args);
+    return $this->login(\Drupal::request(), $args);
   }
 
   /**
@@ -128,33 +125,38 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
    *
-   * @return \Symfony\Component\HttpFoundation\Response
-   *   A response which contains the ID and CSRF token.
+   * @param $credentials
+   *   The credentials to try logging in with.
+   *
+   * @return \Drupal\user\UserInterface
+   *   The newly logged user.
    */
   public function login(Request $request, $credentials) {
     if ($this->currentUser->isAuthenticated()) {
-      throw new BadRequestHttpException('The user is logged in.');
+      throw new BadRequestHttpException($this->t('The user is logged in.'));
     }
 
-    if (!isset($credentials['username']) && !isset($credentials['password'])) {
-      throw new BadRequestHttpException('Missing credentials.');
+    if (!isset($credentials['name']) && !isset($credentials['password'])) {
+      throw new BadRequestHttpException($this->t('Missing credentials.'));
     }
 
-    if (!isset($credentials['username'])) {
-      throw new BadRequestHttpException('Missing credentials.username.');
+    if (!isset($credentials['name'])) {
+      throw new BadRequestHttpException($this->t('Missing user name.'));
     }
+
     if (!isset($credentials['password'])) {
-      throw new BadRequestHttpException('Missing credentials.password.');
+      throw new BadRequestHttpException($this->t('Missing password.'));
     }
 
-    $this->floodControl($request, $credentials['username']);
+    $this->floodControl($request, $credentials['name']);
 
-    if ($this->userIsBlocked($credentials['username'])) {
-      throw new BadRequestHttpException('The user has not been activated or is blocked.');
+    if ($this->userIsBlocked($credentials['name'])) {
+      throw new BadRequestHttpException($this->t('The user has not been activated or is blocked.'));
     }
 
-    if ($uid = $this->userAuth->authenticate($credentials['username'], $credentials['password'])) {
-      $this->flood->clear('user.http_login', $this->getLoginFloodIdentifier($request, $credentials['username']));
+    if ($uid = $this->userAuth->authenticate($credentials['name'], $credentials['password'])) {
+      // If login succeeded, clean flood data.
+      $this->flood->clear('user.http_login', $this->getLoginFloodIdentifier($request, $credentials['name']));
       /** @var \Drupal\user\UserInterface $user */
       $user = $this->entityTypeManager->getStorage('user')->load($uid);
       $this->userLoginFinalize($user);
@@ -162,13 +164,14 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
       return $user;
     }
 
+    // If login had no success, increment flood data.
     $flood_config = $this->configFactory->get('user.flood');
-    if ($identifier = $this->getLoginFloodIdentifier($request, $credentials['username'])) {
+    if ($identifier = $this->getLoginFloodIdentifier($request, $credentials['name'])) {
       $this->flood->register('user.http_login', $flood_config->get('user_window'), $identifier);
     }
     // Always register an IP-based failed login event.
     $this->flood->register('user.failed_login_ip', $flood_config->get('ip_window'));
-    throw new BadRequestHttpException('Sorry, unrecognized username or password.');
+    throw new BadRequestHttpException($this->t('Sorry, unrecognized name or password.'));
   }
 
   /**
@@ -176,16 +179,16 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request.
-   * @param string $username
-   *   The username supplied in login credentials.
+   * @param string $name
+   *   The name supplied in login credentials.
    *
    * @return string
    *   The login identifier or if the user does not exist an empty string.
    */
-  protected function getLoginFloodIdentifier(Request $request, $username) {
+  protected function getLoginFloodIdentifier(Request $request, $name) {
     $flood_config = $this->configFactory->get('user.flood');
     $accounts = $this->entityTypeManager->getStorage('user')
-      ->loadByProperties(['name' => $username, 'status' => 1]);
+      ->loadByProperties(['name' => $name, 'status' => 1]);
     if ($account = reset($accounts)) {
       if ($flood_config->get('uid_only')) {
         // Register flood events based on the uid only, so they apply for any
@@ -208,16 +211,17 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request.
-   * @param string $username
+   * @param string $name
    *   The user name sent for login credentials.
    */
-  protected function floodControl(Request $request, $username) {
+  protected function floodControl(Request $request, $name) {
     $flood_config = $this->configFactory->get('user.flood');
+
     if (!$this->flood->isAllowed('user.failed_login_ip', $flood_config->get('ip_limit'), $flood_config->get('ip_window'))) {
       throw new AccessDeniedHttpException('Access is blocked because of IP based flood prevention.', NULL, Response::HTTP_TOO_MANY_REQUESTS);
     }
 
-    if ($identifier = $this->getLoginFloodIdentifier($request, $username)) {
+    if ($identifier = $this->getLoginFloodIdentifier($request, $name)) {
       // Don't allow login if the limit for this user has been reached.
       // Default is to allow 5 failed attempts every 6 hours.
       if (!$this->flood->isAllowed('user.http_login', $flood_config->get('user_limit'), $flood_config->get('user_window'), $identifier)) {
@@ -227,6 +231,7 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
         else {
           $error_message = 'Too many failed login attempts from your IP address. This IP address is temporarily blocked.';
         }
+
         throw new AccessDeniedHttpException($error_message, NULL, Response::HTTP_TOO_MANY_REQUESTS);
       }
     }
@@ -236,7 +241,7 @@ class UserLogin extends MutationPluginBase implements ContainerFactoryPluginInte
    * Verifies if the user is blocked.
    *
    * @param string $name
-   *   The username.
+   *   The user's name.
    *
    * @return bool
    *   TRUE if the user is blocked, otherwise FALSE.

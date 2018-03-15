@@ -4,19 +4,20 @@ import { Form, Field } from 'react-final-form'
 import { Mutation } from 'react-apollo'
 import Router from 'next/router'
 
-import { complement, equals } from 'ramda'
 import { combine, condition, required, minLength, email, equalsField } from 'app/lib/form/validation'
 
 import { loginMutation, registerMutation } from './mutations'
 
 export const labels = {
+  name: 'Username',
   email: 'E-mail',
   password: 'Password',
   passwordConfirm: 'Confirm password',
 }
 
 const validations = {
-  email: combine([required, condition(complement(equals)('admin'), email)]),
+  name: combine([required]),
+  email: combine([required, email]),
   password: combine([required, minLength(6)]),
   passwordConfirm: condition(
     (value, { register }) => register,
@@ -58,6 +59,17 @@ const SigninContainer = ({ children }) => (
       </Mutation>
     ) }
   </Mutation>
+)
+
+/**
+ * Composable name field.
+ */
+SigninContainer.Username = props => (
+  <Field
+    name='name'
+    validate={ validations.name }
+    { ...props }
+  />
 )
 
 /**

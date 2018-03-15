@@ -27,7 +27,7 @@ const StyledImage = styled(Image)`
 
 const SignInPage = () => (
   <App>
-    <Box full='vertical' justify='center' align='center'>
+    <Box full='vertical' justify='center' align='center' pad={ { vertical: 'large' } }>
       <StyledImage src='/static/logo.png' />
 
       <Headline>Welcome to the <b>TallerChat</b> <ChatIcon size='large' colorIndex='critical' /></Headline>
@@ -38,13 +38,22 @@ const SignInPage = () => (
             <Heading strong tag='h2' align='center'>Sign In</Heading>
 
             <fieldset>
-              <FormField label={ labels.email }>
-                <SigninContainer.Email
+              <FormField label={ labels.name }>
+                <SigninContainer.Username
                   autoFocus
                   disabled={ submitting }
                   component={ TextInput }
                 />
               </FormField>
+
+              { register && (
+                <FormField label={ labels.email }>
+                  <SigninContainer.Email
+                    disabled={ submitting }
+                    component={ TextInput }
+                  />
+                </FormField>
+              ) }
 
               <FormField label={ labels.password }>
                 <SigninContainer.Password

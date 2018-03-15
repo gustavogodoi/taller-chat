@@ -15,7 +15,7 @@ run:
 	docker-compose run --service-ports --rm app
 
 in:
-	docker exec -it $(shell docker-compose ps | grep _app_run_ | cut -d" " -f 1) /bin/bash
+	docker exec -it $(shell docker-compose ps -q app) /bin/bash
 
 mysql:
 	docker exec -it taller-chat-db mysql -h localhost -u root -ppassword drupal
