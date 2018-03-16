@@ -112,43 +112,6 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                 { !user || !user.uid ? (
                   <LoadingComponent />
                 ) : (
-<<<<<<< 28caddb3d8e48b64dbe884d77850dc4d0d6ed8fd
-                  <MessagesContainer channel={ channels.find(({ name }) => name === channel) }>
-                    { ({ loading, messages }) => (
-                      <Box full='vertical'>
-                        <StyledRoomHeader pad={ { vertical: 'small', horizontal: 'medium' } } justify='between'>
-                          <Title>
-                            { '#' + channel }
-                          </Title>
-                        </StyledRoomHeader>
-
-                        <Box pad='medium' flex='grow'>
-                          { loading ? 'Loading...' : (
-                            messages.length === 0 ? 'No one talking here yet :(' : (
-                              messages.map(({ id, author, message }) => (
-                                <Box key={ id } pad='small' credit={ author }>
-                                  <StyledAuthor>{ author }</StyledAuthor>
-                                  <StyledMessage>{ message }</StyledMessage>
-                                </Box>
-                              ))
-                            )
-                          ) }
-                        </Box>
-
-                        <Box pad='medium' direction='column'>
-                          { user && user.uid ? (
-                            <NewMessageContainer
-                              user={ user }
-                              channel={ channels.find(({ name }) => name === channel) }
-                            >
-                              { ({ handleSubmit }) => (
-                                <form onSubmit={ handleSubmit }>
-                                  <NewMessageContainer.Message
-                                    placeHolder='Message #general'
-                                    component={ StyledTextInput }
-                                  />
-                                </form>
-=======
                   <StyledBox>
                     <MessagesContainer channel={ channels.find(({ name }) => name === channel) }>
                       { ({ loading, messages }) => (
@@ -170,7 +133,6 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                                     </Box>
                                   ))
                                 )
->>>>>>> Fixing channel box scroll
                               ) }
                             </Box>
                           </StyledBox>
