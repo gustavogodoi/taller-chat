@@ -24,7 +24,9 @@ import Anchor from 'grommet/components/Anchor'
 import Button from 'grommet/components/Button'
 import Paragraph from 'grommet/components/Paragraph'
 import Label from 'grommet/components/Label'
+import Image from 'grommet/components/Image'
 
+import gravatar from 'gravatar-url'
 import bootstrap from 'app/lib/bootstrap'
 import TextInput from 'app/modules/form/components/TextInput'
 
@@ -126,10 +128,13 @@ const ChatRoom = ({ url, url: { query: { channel = 'general' } } }) => (
                             <Box pad='medium' flex='grow'>
                               { loading ? 'Loading...' : (
                                 messages.length === 0 ? 'No one talking here yet :(' : (
-                                  messages.map(({ id, author, message }) => (
-                                    <Box key={ id } pad='small' credit={ author }>
-                                      <StyledAuthor>{ author }</StyledAuthor>
-                                      <StyledMessage>{ message }</StyledMessage>
+                                  messages.map(({ id, author, message, email }) => (
+                                    <Box key={ id } flex='grow' direction='row' align='center'>
+                                      <Image src={ gravatar(email) } size='thumb' />
+                                      <Box pad='small' credit={ author }>
+                                        <StyledAuthor>{ author }</StyledAuthor>
+                                        <StyledMessage>{ message }</StyledMessage>
+                                      </Box>
                                     </Box>
                                   ))
                                 )
